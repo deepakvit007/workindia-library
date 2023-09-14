@@ -1,5 +1,5 @@
 {
-  "name": "workindia-railway-backend",
+  "name": "workindia-backend",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -7,7 +7,7 @@
     "start":"nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Eshan Gupta",
+  "author": "Deepak Kumar",
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^5.1.1",
