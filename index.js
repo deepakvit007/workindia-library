@@ -196,48 +196,46 @@ app.get("/api/books", async (req, res) => {
 });
 
 
-app.post('/api/books/borrow',  (req, res) => {
+app.post('/api/books/borrow', async (req, res) => {
   const { book_id, user_id, issue_time, return_time } = req.body;
   const query = 'SELECT * FROM books WHERE book_id = ?';
-  pool.query(query, [book_id], (err, result) => {
-    if (err) {
-      console.error('Error checking book availability: ', err);
-      res.status(500).json({ error: 'Internal Server Error' });
+
+  try {
+    const [bookResult] = await pool.query(query, [book_id]);
+
+    if (bookResult.length === 0) {
+      res.status(404).json({ error: 'Book not found' });
       return;
     }
-    if (result.length === 0) {
-      res.status(404).json({ error: 'Book not found' });
-    } else {
-      const book = result[0];
-      if (book.available) {
-        // Update book availability and insert booking into the database
-        const updateQuery = 'UPDATE books SET available = false, next_available_at = ? WHERE book_id = ?';
-        pool.query(updateQuery, [return_time, book_id], (err, updateResult) => {
-          if (err) {
-            console.error('Error booking the book: ', err);
-            res.status(500).json({ error: 'Internal Server Error' });
-            return;
-          }
-          const bookingQuery = 'INSERT INTO bookings (book_id, user_id, issue_time, return_time) VALUES (?, ?, ?, ?)';
-          pool.query(bookingQuery, [book_id, user_id, issue_time, return_time], (err, bookingResult) => {
-            if (err) {
-              console.error('Error booking the book: ', err);
-              res.status(500).json({ error: 'Internal Server Error' });
-              return;
-            }
-            res.json({
-              status: 'Book booked successfully',
-              status_code: 200,
-              booking_id: bookingResult.booking_id
-            });
-          });
-        });
-      } else {
-        res.status(400).json({ status: 'Book is not available at this moment' });
-      }
+
+    const book = bookResult[0];
+
+    if (!book.available) {
+      res.status(400).json({ status: 'Book is not available at this moment' });
+      return;
     }
-  });
+
+    const updateQuery = 'UPDATE books SET available = false, next_available_at = ? WHERE book_id = ?';
+
+    const [updateResult] = await pool.query(updateQuery, [return_time, book_id]);
+
+    const bookingQuery = 'INSERT INTO bookings (book_id, user_id, issue_time, return_time) VALUES (?, ?, ?, ?)';
+
+    const [bookingResult] = await pool.query(bookingQuery, [book_id, user_id, issue_time, return_time]);
+
+    const booking_id = bookingResult.insertId;
+
+    res.json({
+      status: 'Book booked successfully',
+      status_code: 200,
+      booking_id: booking_id
+    });
+  } catch (error) {
+    console.error('Error booking the book: ', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 });
+
 
 
 app.get("/api/books/:book_id/availability", async (req, res) => {
