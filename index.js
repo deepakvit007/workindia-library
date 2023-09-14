@@ -183,7 +183,7 @@ app.get("/api/books", async (req, res) => {
     const { title } = req.query;
     // SQL query to retrieve train availability information
     const sql =
-      "SELECT book_id,title,author,isbin FROM books WHERE title = '" +
+      "SELECT book_id,title,author,isbn FROM books WHERE title = '" +
       title +
       "';";
 
