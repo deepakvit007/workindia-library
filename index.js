@@ -144,6 +144,7 @@ app.post("/api/login", async (req, res) => {
 });
 
 const Avail = true;
+const next = "NULL";
 app.post("/api/books/create", async (req, res) => {
   const {
     title,
@@ -153,7 +154,7 @@ app.post("/api/books/create", async (req, res) => {
   const bookID = generate10DigitUID();
   try {
     const createBookQuery =
-      "INSERT INTO books (book_id,title,author,isbin,available) VALUES ('" +
+      "INSERT INTO books (book_id,title,author,isbn,available,next_available_at) VALUES ('" +
       bookID +
       "','" +
       title +
@@ -163,9 +164,11 @@ app.post("/api/books/create", async (req, res) => {
       isbin +
        "','" +
        Avail +
+       "','" +
+       next +
       "');";
     await pool.query(createBookQuery);
-    console.log(" added successfully");
+    console.log("added successfully");
     res
       .status(200)
       .send({ message: "Book added successfully", book_id: bookID });
