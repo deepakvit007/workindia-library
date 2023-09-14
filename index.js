@@ -174,7 +174,7 @@ app.post("/api/books/create", async (req, res) => {
   }
 });
 
-//GET TRAIN REQUEST
+//GET REQUEST
 app.get("/api/books", async (req, res) => {
   try {
     const { title } = req.query;
@@ -195,57 +195,6 @@ app.get("/api/books", async (req, res) => {
   }
 });
 
-// //BOOK A SEAT
-
-app.post("/api/trains/:train_id/book", async (req, res) => {
-  try {
-    const { train_id } = req.params;
-    const { user_id, no_of_seats } = req.body;
-
-    // Check if the train exists and has available seats
-    const [trainRows] = await pool.query(
-      "SELECT * FROM trains WHERE trainIDs ='" +
-        train_id +
-        "'AND seat_capacity >=" +
-        no_of_seats +
-        ";"
-    );
-
-    if (trainRows.length === 0) {
-      return res
-        .status(404)
-        .json({ error: "Train not found or not enough seats available." });
-    }
-
-    // Assuming you have a bookings table, insert the booking record
-    const q =
-      "INSERT INTO bookings (train_id,train_name,user_id, no_of_seats,seat_number,arrival_time_at_source,arrival_time_at_destination) VALUES ('" +
-      train_id +
-      "','" +
-      trainRows[0].train_name +
-      "','" +
-      user_id +
-      "','" +
-      no_of_seats +
-      "','" +
-      "1,2,3" +
-      "','" +
-      trainRows[0].arrival_time_at_source +
-      "','" +
-      trainRows[0].arrival_time_at_destination +
-      "')";
-    console.log(q);
-    await pool.query(q); // Update the seat capacity of the train
-    await pool.query(
-      "UPDATE trains SET seat_capacity = seat_capacity - ? WHERE trainIDs = ?",
-      [no_of_seats, train_id]
-    );
-    res.json({ message: "Seat booked successfully!" });
-  } catch (error) {
-    console.error("Error:", error.message);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
 
 app.post('/api/books/borrow',  (req, res) => {
   const { book_id, user_id, issue_time, return_time } = req.body;
